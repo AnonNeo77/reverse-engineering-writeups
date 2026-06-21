@@ -46,8 +46,7 @@ module_hide();
 This explains why the module does not appear in normal `lsmod` output after being loaded.
 
 ---
-<img width="959" height="505" alt="diamorphine_init" src="https://github.com/user-attachments/assets/80831f37-b77f-4f69-a31f-a4ca33986fa4" />
-
+<img width="959" height="505" alt="diamorphine_init" src="https://github.com/user-attachments/assets/8df32d17-3072-4d7d-9cd1-aeaab0258475" />
 
 ## Signal-Based Backdoor Functionality
 
@@ -55,7 +54,7 @@ The most important functionality was implemented inside `hacked_kill()`.
 
 ### Signal 46 – Module Hide/Show
 
-<img width="959" height="502" alt="Hacked_kill_1" src="https://github.com/user-attachments/assets/3e1ed7e5-f46e-4cc3-b10f-a7bdc0235c64" />
+<img width="959" height="502" alt="Hacked_kill_1" src="https://github.com/user-attachments/assets/968849c1-e661-49ff-b9c4-8d75f351c4e8" />
 
 The function checks whether the received signal is `0x2e` (46 decimal).
 
@@ -78,7 +77,7 @@ This provides a covert mechanism for hiding and revealing the rootkit.
 
 ### Signal 64 – Privilege Escalation
 
-<img width="959" height="503" alt="Hacked_kill_2" src="https://github.com/user-attachments/assets/c584fe59-5877-427f-89ec-b1bb6c531dd9" />
+<img width="959" height="503" alt="Hacked_kill_2" src="https://github.com/user-attachments/assets/29be67ba-1730-480a-8929-65cae561ad37" />
 
 Another branch inside `hacked_kill()` handles signal `0x40` (64 decimal).
 
@@ -93,7 +92,7 @@ The rootkit overwrites credential structures and commits them back to the curren
 
 ## Privilege Escalation Function
 
-<img width="958" height="502" alt="give_root" src="https://github.com/user-attachments/assets/f44938ac-41a4-4d3f-9138-0c9852f5d2cf" />
+<img width="958" height="502" alt="give_root" src="https://github.com/user-attachments/assets/88c87f42-55ad-470d-8d9f-95a6ea04a978" />
 
 The standalone function `give_root()` confirms the rootkit's privilege escalation mechanism.
 
@@ -116,7 +115,7 @@ This is a classic Linux kernel rootkit technique used to convert the current pro
 
 After booting into the challenge environment:
 
-<img width="751" height="256" alt="id_signals" src="https://github.com/user-attachments/assets/865a3a55-5d49-4370-aa76-d5ce0ad58b7b" />
+<img width="751" height="256" alt="id_signals" src="https://github.com/user-attachments/assets/617ea082-5f47-4cd3-af24-3b7db41d2f50" />
 
 ### Verify Current Privileges
 
@@ -170,8 +169,7 @@ The module becomes visible, confirming the behavior identified during static ana
 
 ### Trigger Privilege Escalation
 
-<img width="751" height="78" alt="root_signal" src="https://github.com/user-attachments/assets/ea81d6d7-a298-4639-8412-1ffffbe218c3" />
-
+<img width="751" height="78" alt="root_signal" src="https://github.com/user-attachments/assets/dbf52be4-f4aa-4264-8a07-b34720b34274" />
 
 The privilege escalation signal can be sent to the current shell:
 
@@ -199,16 +197,15 @@ The shell is now running as root.
 
 After obtaining root privileges:
 
-<img width="452" height="466" alt="rmmod" src="https://github.com/user-attachments/assets/3e4dce88-f6d2-4435-8945-83d0b9fa6a50" />
-
+<img width="452" height="466" alt="rmmod" src="https://github.com/user-attachments/assets/c10538b6-04cc-4d7b-8cdf-42fb1c77e95d" />
 
 ```bash
 find / -name "*flag*" 2>/dev/null
 ```
 
 This revealed:
-<img width="589" height="119" alt="flag" src="https://github.com/user-attachments/assets/41a3f55d-5014-48fb-93ca-2543cb1018f5" />
 
+<img width="589" height="119" alt="flag" src="https://github.com/user-attachments/assets/0f5db571-872d-4f21-b1c9-cfc5de12d539" />
 
 ```text
 /opt/psychosis/flag.txt
