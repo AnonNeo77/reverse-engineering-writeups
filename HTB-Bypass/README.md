@@ -19,6 +19,8 @@ Wrong username and/or password
 This suggested that the authentication logic was implemented entirely on the client side.
 
 ---
+<img width="487" height="206" alt="Check_1" src="https://github.com/user-attachments/assets/f2d49cdc-087c-4501-9d95-ff47cf085800" />
+
 
 ## Static Analysis with dnSpy
 
@@ -38,6 +40,8 @@ public static bool 1()
     return false;
 }
 ```
+<img width="959" height="500" alt="bool1_false" src="https://github.com/user-attachments/assets/1051282d-33d6-4d98-bec5-cd9e06b98aa5" />
+
 
 The function accepts user input but immediately returns `false`, meaning authentication can never succeed regardless of the supplied credentials.
 
@@ -69,6 +73,8 @@ was modified to:
 ```il
 ldc.i4.1
 ```
+<img width="959" height="365" alt="patch_1" src="https://github.com/user-attachments/assets/02be4362-5d6b-425c-a6ca-3f260bb51880" />
+
 
 This causes the function to always return TRUE.
 
@@ -103,6 +109,8 @@ public static void 2()
     }
 }
 ```
+<img width="959" height="502" alt="secret_key_fun()" src="https://github.com/user-attachments/assets/f1fbbc4b-0857-4f37-b958-f5d584a31949" />
+
 
 The application compared user input against a hardcoded secret value stored in the application's encrypted resources.
 
@@ -118,6 +126,8 @@ stloc.2
 ldloc.2
 brfalse.s 0041
 ```
+<img width="956" height="494" alt="patch_2" src="https://github.com/user-attachments/assets/61a319da-0d07-40c9-afa0-5552663a0189" />
+
 
 The `brfalse.s` instruction redirected execution to the failure path when the comparison result was false.
 
@@ -139,6 +149,8 @@ Please Enter the secret Key: anything
 Nice here is the Flag:
 HTB{SuP3rC00lFL4g}
 ```
+<img width="577" height="206" alt="flag" src="https://github.com/user-attachments/assets/85825491-5ccd-4f89-8996-a66436510ab3" />
+
 
 ---
 
