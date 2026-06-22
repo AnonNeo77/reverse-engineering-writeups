@@ -8,7 +8,7 @@ The objective of this challenge was to bypass the client-side authentication mec
 
 ## Initial Analysis
 
-The provided binary (`HTBChallange.exe`) was identified as a .NET Framework application. Running the executable prompted for a username and password.
+The provided binary (`Bypass.exe`) was identified as a .NET Framework application. Running the executable prompted for a username and password.
 
 Testing several credential combinations always resulted in:
 
