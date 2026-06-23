@@ -19,7 +19,8 @@ Wrong username and/or password
 This suggested that the authentication logic was implemented entirely on the client side.
 
 ---
-<img width="487" height="206" alt="Check_1" src="https://github.com/user-attachments/assets/f2d49cdc-087c-4501-9d95-ff47cf085800" />
+<img width="973" height="412" alt="Check_1" src="https://github.com/user-attachments/assets/f081083c-92fe-47b3-ad84-09db35834087" />
+
 
 
 ## Static Analysis with dnSpy
@@ -149,7 +150,8 @@ Please Enter the secret Key: anything
 Nice here is the Flag:
 HTB{SuP3rC00lFL4g}
 ```
-<img width="577" height="206" alt="flag" src="https://github.com/user-attachments/assets/85825491-5ccd-4f89-8996-a66436510ab3" />
+<img width="1153" height="411" alt="flag_1" src="https://github.com/user-attachments/assets/4aa78e0a-cf79-4d17-a7bf-21af9ce180d3" />
+
 
 
 ---
