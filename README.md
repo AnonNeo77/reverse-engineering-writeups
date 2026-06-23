@@ -10,7 +10,7 @@ Collection of reverse engineering, malware analysis, and CTF writeups.
 
 ## Tools
 
-Ghidra • x64dbg • PEStudio • DIE • Procmon
+Ghidra • x64dbg • Dnspy64 • radare2 • gdb
 
 ---
 
