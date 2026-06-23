@@ -7,6 +7,7 @@ Collection of reverse engineering, malware analysis, and CTF writeups.
 - HTB-Bypass
 - HTB-Cyberpsychosis
 - HTB-Suspicious-Threat
+- THM-Basic-Malware-RE
 
 ## Tools
 
