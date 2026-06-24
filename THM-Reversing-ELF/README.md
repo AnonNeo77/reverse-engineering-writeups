@@ -1,4 +1,4 @@
-# ELF Crackmes Writeup Series
+# THM-Reversing-ELF
 
 This repository contains writeups for several beginner reverse engineering challenges. The objective was to recover hidden passwords and flags through static analysis using Linux tools and Ghidra.
 
