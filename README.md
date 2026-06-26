@@ -5,18 +5,6 @@ Covers ELF binaries, PE malware, crackmes, and anti-debug bypass techniques.
 
 ---
 
-## Writeups
-
-
-
-| [HTB-Bypass](./HTB-Bypass/) 
-| [HTB-Cyberpsychosis](./HTB-Cyberpsychosis/)
-| [HTB-Suspicious-Threat](./HTB-Suspicious-Threat/) 
-| [THM-Basic-Malware-RE](./THM-Basic-Malware-RE/)
-| [THM-Reversing-ELF](./THM-Reversing-ELF/) 
-
----
-
 ## Toolchain
 
 | Tool | Role |
