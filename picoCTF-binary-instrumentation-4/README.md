@@ -1,94 +1,174 @@
-# 🛡️ koaudit: Linux Kernel Module Static Auditor
+# Reverse Engineering Writeup - Unpacking a Hidden LZMA Payload
 
-`koaudit` is a fast, lightweight, and deterministic static analysis tool designed to audit compiled Linux kernel modules (`.ko`) for suspicious or malicious behavior before they are loaded into kernel memory.
+## Overview
 
-The tool parses ELF properties, reconstructs call graphs, and applies heuristic checks entirely locally. It follows the traditional Unix utility philosophy: fast, deterministic, and easy to audit.
+This challenge involved reverse engineering a packed 64-bit Windows PE executable. Rather than containing the challenge logic directly, the executable acted as a custom loader that searched for a hidden section, unpacked its contents, and executed a second-stage payload.
 
----
-
-## 🚀 Key Features
-
-- **Robust ELF Validation**: Gracefully handles malformed, truncated, or stripped ELF headers without crashing. Automatically rejects unlinked compiler object files (`.o`).
-- **Control Flow Graph Cache**: Reconstructs function branch graphs from relocations, caching reachability checks to ensure high performance on large drivers.
-- **Factual Behavioral Detections**:
-  - **Syscall Hooking**: CR0/SCTLR write-protection register bypasses, sys_call_table modifications, and kallsyms redirects.
-  - **Evasive Hooking**: Dynamic function hooks using `ftrace`, `kprobes`, or notifier callbacks.
-  - **Rootkit Backdoors**: Unlocked/compat IOCTL handlers, procfs/debugfs gateways, and Netfilter packet interceptors.
-  - **Evasion Tactics**: Section entropy checks (packing/obfuscation) and unlinking self-hiding operations inside initialization routines.
-- **Minimal Unix CLI**: Standard flags for format controls and verbose reporting (`--json`, `--html`, `--version`).
-- **Clean Reports**: Stripped of numerical score metrics and dramatic wording; groups output logically by severity and prints a clear behavior list.
+The objective was to understand the loader, recover the hidden executable, and extract the final flag.
 
 ---
 
-## 📦 Installation & Setup
+# Initial Analysis
 
-1. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+I began by loading the executable into **Ghidra** to inspect its overall structure.
 
-2. **Standalone Binaries**:
-   We distribute pre-compiled standalone executables for Linux (`x86_64` and `ARM64`) on every tagged release. Check the **Releases** tab to download.
+While reviewing the PE sections, I noticed an unusual custom section named **`.ATOM`**. Unlike standard PE sections such as `.text`, `.rdata`, or `.data`, this section immediately stood out as suspicious because custom sections are commonly used to hide encrypted or compressed payloads.
 
----
+<img width="958" height="506" alt="01-sections" src="https://github.com/user-attachments/assets/9eae402e-1155-4e53-9ffa-90e7c25d438a" />
 
-## 💻 Usage
+To confirm the section layout, I inspected the binary using `rabin2`.
 
 ```bash
-# Auditing a module with default text summary to stdout
-koaudit module.ko
-
-# Output JSON report
-koaudit --json module.ko
-
-# Output HTML report
-koaudit --html module.ko
-
-# Verbose scanning details
-koaudit --verbose module.ko
-
-# Version details
-koaudit --version
+rabin2 -S bin-ins.exe
 ```
 
-### Example Terminal Output
+The output confirmed that `.ATOM` occupied approximately **448 KB**, making it significantly larger than the other sections.
+
+<img width="526" height="182" alt="02_section_table" src="https://github.com/user-attachments/assets/d4421963-91e4-48d8-918c-187ef021a42a" />
+
+At this point, it was clear that `.ATOM` was likely storing the actual payload.
+
+---
+
+# Understanding the Loader
+
+Next, I analyzed the program entry point.
+
+The loader manually parsed its own PE headers and iterated through every section instead of relying on Windows loader APIs.
+
+Each section name was passed into a small hashing routine before being compared against a hardcoded value.
+
+The hashing routine performs a **7-bit rotate-right** followed by an addition of the current character.
+
+```c
+hash = ROR32(hash, 7);
+hash += current_character;
 ```
-KOAUDIT
-Target: antipatterns_module.ko
-Status: Suspicious
 
-Findings
-──────────────────────────────────
-[HIGH]
-• Custom IOCTL interface detected
-  - Function: ap_ioctl
-  - Reason: User-space control interface.
+<img width="959" height="505" alt="03_hash_function" src="https://github.com/user-attachments/assets/cb924a6d-a986-4883-b338-3144aa2c35d7" />
 
-[SUSPICIOUS]
-• Module name differs from filename.
-  - Internal: antipatterns
-  - File: antipatterns_module.ko
+The loader compared the resulting hash against:
 
-Summary
-──────────────────────────────────
-Status: Suspicious
+```
+0x9F520B2D
+```
 
-Detected:
-• Module name differs from filename
-• Custom IOCTL interface detected
+To identify which section produced this value, I recreated the algorithm in Python.
 
-Recommendation:
-Review the source before loading this module.
+The results showed:
+
+```
+.ATOM -> 0x9f520b2d
+ATOM  -> 0x9f52084d
+```
+
+<img width="228" height="74" alt="04_hash_verification" src="https://github.com/user-attachments/assets/58da1163-3a9d-4e4f-8c6f-eae3e437bb77" />
+
+This confirmed that the loader specifically searched for the **`.ATOM`** section before continuing execution.
+
+---
+
+# Extracting the Hidden Payload
+
+Since the payload was stored inside `.ATOM`, I extracted the section directly from the executable.
+
+```bash
+dd if=bin-ins.exe of=atom.bin bs=1 skip=$((0x6000)) count=$((0x6FE00))
+```
+
+After extraction, I analyzed the file with **Binwalk**.
+
+```bash
+binwalk atom.bin
+```
+
+Binwalk immediately detected the contents as an **LZMA compressed stream**.
+
+<img width="938" height="204" alt="05_lzma_detection" src="https://github.com/user-attachments/assets/5b632a4f-46f5-482c-b94a-b9e691949d42" />
+
+Recognizing the compression format meant there was no need to reverse the decompression algorithm manually.
+
+---
+
+# Recovering the Second-Stage Executable
+
+I used Python's built-in `lzma` module to decompress the extracted payload.
+
+After decompression, I verified the recovered file.
+
+```bash
+file payload.bin
+```
+
+The output identified it as another **64-bit Windows PE executable**.
+
+<img width="596" height="222" alt="06_payload_recovered" src="https://github.com/user-attachments/assets/237593af-6d95-406b-be85-7f8b3e7dc359" />
+
+This confirmed that the original executable served only as a loader, while the actual challenge logic resided inside the unpacked binary.
+
+---
+
+# Analyzing the Second Stage
+
+The recovered executable was loaded into Ghidra for further analysis.
+
+Browsing the string table revealed an interesting string:
+
+```
+Congratulations! Here's your flag:
+```
+
+<img width="959" height="505" alt="07_strings" src="https://github.com/user-attachments/assets/d8b763df-f9bf-40aa-ae82-b730aa146eaa" />
+
+Following the cross-reference to this string led directly to the routine responsible for constructing the final flag.
+
+Instead of storing the flag as a single string, the program initialized several Base64 fragments during static initialization.
+
+---
+
+# Recovering the Flag
+
+The global constructor populated an array named `flagParts` with multiple Base64 fragments.
+
+<img width="959" height="505" alt="flag-part-1" src="https://github.com/user-attachments/assets/f2cc8ebe-d257-451c-8de5-d39426ce122d" />
+
+
+<img width="959" height="503" alt="flag-part-2" src="https://github.com/user-attachments/assets/3650df24-0c33-4b6e-ada2-663e8713f72e" />
+
+
+<img width="959" height="505" alt="flag-part-3" src="https://github.com/user-attachments/assets/0faf01c9-3d75-46bd-8aa7-ba9b7cc1133a" />
+
+
+The fragments were:
+
+```
+cGljb0NURnt
+uM3R3MHJrXz
+FzXzRQMXNfN
+FNfVzMxMV82
+ODU1NTY2NH0K
+```
+
+After concatenating the fragments, I decoded the resulting Base64 string.
+
+<img width="356" height="97" alt="09_flag_decode" src="https://github.com/user-attachments/assets/62c4b031-d233-4122-91b7-dc6ffd87ae47" />
+
+The decoded output revealed the final flag.
+
+```
+picoCTF{n3tw0rk_1s_4P1s_4S_W311_68555664}
 ```
 
 ---
 
-## 🧪 Testing
+# Tools Used
 
-Run the automated test suite locally:
-```bash
-python3 -m unittest discover -s tests -p "test_*.py"
-```
+- Ghidra
+- Rabin2
+- Binwalk
+- Python
+- LZMA
+- Base64
+- Linux Command Line Utilities
 
-## 📄 License
-Distributed under the MIT License. See [LICENSE](LICENSE) for details.
+
